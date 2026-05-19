@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://agently-server-v1.vercel.app/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://agently-server-v1.vercel.app/health"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
