@@ -1,0 +1,6 @@
+{
+  "name": "Agently",
+  "description": "Premium AI Receptionist SaaS - Intelligent voice & chat concierge for modern business.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
