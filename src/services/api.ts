@@ -14,6 +14,7 @@ import {
   WorkspaceBootstrap,
 } from '../types';
 import { getSessionToken } from './session';
+import { buildApiUrl, getApiBaseUrl } from './apiBase';
 
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -29,9 +30,7 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-
-const buildUrl = (path: string) => `${API_BASE_URL}${path}`;
+const buildUrl = buildApiUrl;
 
 export const NETWORK_OFFLINE_MESSAGE = 'You are currently not connected to the internet. Please connect to the internet and try again.';
 
@@ -616,7 +615,7 @@ export const twilioApi = {
   /** List countries where Twilio supports numbers */
   async listCountries() {
     const res = await fetch(
-      `${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')}/api/twilio/numbers/countries`,
+      buildApiUrl('/api/twilio/numbers/countries'),
       { headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` } }
     );
     if (!res.ok) throw new Error((await res.json())?.error?.message || 'Failed');
@@ -629,7 +628,7 @@ export const twilioApi = {
     if (params.areaCode) qs.set('areaCode', params.areaCode);
     if (params.contains) qs.set('contains', params.contains);
     if (params.limit) qs.set('limit', String(params.limit));
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/search?${qs}`, {
       headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` }
     });
@@ -639,7 +638,7 @@ export const twilioApi = {
 
   /** List numbers already owned on the master account */
   async listOwned() {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/owned`, {
       headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` }
     });
@@ -649,7 +648,7 @@ export const twilioApi = {
 
   /** Purchase a new number and assign to a voice agent */
   async purchaseNumber(phoneNumber: string, voiceAgentId?: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/purchase`, {
       method: 'POST',
       headers: {
@@ -664,7 +663,7 @@ export const twilioApi = {
 
   /** Assign an already-owned number to a voice agent */
   async assignNumber(phoneSid: string, phoneNumber: string, voiceAgentId?: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/assign`, {
       method: 'POST',
       headers: {
@@ -679,7 +678,7 @@ export const twilioApi = {
 
   /** Release a number */
   async releaseNumber(sid: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/${sid}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` }
@@ -690,17 +689,12 @@ export const twilioApi = {
 
   /** Get Twilio billing data for this month */
   async getBilling() {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-    const res = await fetch(`${base}/api/twilio/billing`, {
-      headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` }
-    });
-    if (!res.ok) throw new Error('Failed to fetch billing');
-    return (await res.json()) as { billing: import('../types').TwilioBilling };
+    return request<{ billing: import('../types').TwilioBilling }>('/api/twilio/billing');
   },
 
   /** Initiate an outbound call */
   async makeCall(toPhone: string, voiceAgentId?: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/outbound`, {
       method: 'POST',
       headers: {
@@ -715,7 +709,7 @@ export const twilioApi = {
 
   /** Start voice call verification */
   async verifyNumberStart(phoneNumber: string, voiceAgentId?: string, retryAttempt = 1) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/verify-start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` },
@@ -727,7 +721,7 @@ export const twilioApi = {
 
   /** Poll verification status by callSid */
   async verifyNumberStatus(callSid: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/verify-status?callSid=${encodeURIComponent(callSid)}`, {
       headers: { Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` },
     });
@@ -737,7 +731,7 @@ export const twilioApi = {
 
   /** Start SMS OTP verification (for virtual numbers) */
   async verifyNumberSmsStart(phoneNumber: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/verify-sms-start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` },
@@ -749,7 +743,7 @@ export const twilioApi = {
 
   /** Confirm SMS OTP */
   async verifyNumberSmsConfirm(phoneNumber: string, otp: string, voiceAgentId?: string) {
-    const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+    const base = getApiBaseUrl();
     const res = await fetch(`${base}/api/twilio/numbers/verify-sms-confirm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(await import('./session')).getSessionToken() || ''}` },

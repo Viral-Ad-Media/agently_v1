@@ -1,4 +1,5 @@
 import { getSessionToken } from './session';
+import { buildApiUrl } from './apiBase';
 
 export type VoiceProvider = 'openai' | 'elevenlabs';
 
@@ -236,8 +237,7 @@ const normalizeAgentVoiceConfig = (payload: unknown): AgentVoiceConfig => {
   };
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-const buildUrl = (path: string) => `${API_BASE_URL}${path}`;
+const buildUrl = buildApiUrl;
 
 const NETWORK_OFFLINE_MESSAGE = 'You are currently not connected to the internet. Please connect to the internet and try again.';
 
